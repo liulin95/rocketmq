@@ -232,8 +232,10 @@ public class MQClientInstance {
                         this.mQClientAPIImpl.fetchNameServerAddr();
                     }
                     // Start request-response channel
+                    // 创建netty group
                     this.mQClientAPIImpl.start();
                     // Start various schedule tasks
+                    // 开启定时任务
                     this.startScheduledTask();
                     // Start pull service
                     this.pullMessageService.start();
@@ -267,6 +269,7 @@ public class MQClientInstance {
             }, 1000 * 10, 1000 * 60 * 2, TimeUnit.MILLISECONDS);
         }
 
+        // 从nameServer拉取Topic路由信息
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -354,6 +357,7 @@ public class MQClientInstance {
             }
         }
 
+        // 获取订阅的topic的信息
         for (String topic : topicList) {
             this.updateTopicRouteInfoFromNameServer(topic);
         }
@@ -609,6 +613,7 @@ public class MQClientInstance {
                 try {
                     TopicRouteData topicRouteData;
                     if (isDefault && defaultMQProducer != null) {
+                        // 获取topic信息
                         topicRouteData = this.mQClientAPIImpl.getDefaultTopicRouteInfoFromNameServer(defaultMQProducer.getCreateTopicKey(),
                             1000 * 3);
                         if (topicRouteData != null) {

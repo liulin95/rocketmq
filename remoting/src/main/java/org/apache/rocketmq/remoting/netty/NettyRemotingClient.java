@@ -161,6 +161,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                 }
             });
 
+        // 设置bootstrap参数
         Bootstrap handler = this.bootstrap.group(this.eventLoopGroupWorker).channel(NioSocketChannel.class)
             .option(ChannelOption.TCP_NODELAY, true)
             .option(ChannelOption.SO_KEEPALIVE, false)
@@ -179,6 +180,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                             log.warn("Connections are insecure as SSLContext is null!");
                         }
                     }
+                    // 添加处理器
                     pipeline.addLast(
                         defaultEventExecutorGroup,
                         new NettyEncoder(),
@@ -366,6 +368,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
     public RemotingCommand invokeSync(String addr, final RemotingCommand request, long timeoutMillis)
         throws InterruptedException, RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException {
         long beginStartTime = System.currentTimeMillis();
+        // 创建netty channel
         final Channel channel = this.getAndCreateChannel(addr);
         if (channel != null && channel.isActive()) {
             try {
@@ -396,6 +399,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
     }
 
     private Channel getAndCreateChannel(final String addr) throws RemotingConnectException, InterruptedException {
+        // 为指定地址 从配置获取
         if (null == addr) {
             return getAndCreateNameserverChannel();
         }
