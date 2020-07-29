@@ -29,10 +29,11 @@ public class PushConsumer {
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("CID_JODIE_1");
-        consumer.subscribe("TopicTest", "*");
+        consumer.subscribe("TopicTest", "TagA");
         consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         //wrong time format 2017_0422_221800
         consumer.setConsumeTimestamp("20181109221800");
+//        consumer.setInstanceName("ins0");
         consumer.registerMessageListener(new MessageListenerConcurrently() {
 
             @Override
@@ -43,5 +44,22 @@ public class PushConsumer {
         });
         consumer.start();
         System.out.printf("Consumer Started.%n");
+//
+//        DefaultMQPushConsumer consumer2 = new DefaultMQPushConsumer("CID_JODIE_1");
+//        consumer2.subscribe("TopicTest", "TagA");
+//        consumer2.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
+//        //wrong time format 2017_0422_221800
+//        consumer2.setConsumeTimestamp("20181109221822");
+//        consumer2.setInstanceName("ins1");
+//        consumer2.registerMessageListener(new MessageListenerConcurrently() {
+//
+//            @Override
+//            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
+//                System.out.printf("%s Receive New Messages: %s %n", Thread.currentThread().getName(), msgs);
+//                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+//            }
+//        });
+//        consumer2.start();
+//        System.out.printf("consumer2 Started.%n");
     }
 }

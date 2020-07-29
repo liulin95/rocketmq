@@ -1360,7 +1360,7 @@ public class MQClientAPIImpl {
         requestHeader.setTopic(topic);
         //创建对应指令
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_ROUTEINFO_BY_TOPIC, requestHeader);
-
+        //同步请求namesrv
         RemotingCommand response = this.remotingClient.invokeSync(null, request, timeoutMillis);
         assert response != null;
         switch (response.getCode()) {

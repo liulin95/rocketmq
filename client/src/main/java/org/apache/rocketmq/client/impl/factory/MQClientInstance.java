@@ -238,8 +238,10 @@ public class MQClientInstance {
                     // 开启定时任务
                     this.startScheduledTask();
                     // Start pull service
+                    // pull service,线程从任务队列获取请求从broker拉取消息
                     this.pullMessageService.start();
                     // Start rebalance service
+                    // 负载均衡
                     this.rebalanceService.start();
                     // Start push service
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
@@ -256,6 +258,7 @@ public class MQClientInstance {
 
     private void startScheduledTask() {
         if (null == this.clientConfig.getNamesrvAddr()) {
+            //如果没有配置 namesrvAddr 将从固定的网址获取
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
                 @Override
@@ -269,7 +272,7 @@ public class MQClientInstance {
             }, 1000 * 10, 1000 * 60 * 2, TimeUnit.MILLISECONDS);
         }
 
-        // 从nameServer拉取Topic路由信息
+        // 从nameServer拉取Topic路由信息 30s/次
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -282,12 +285,15 @@ public class MQClientInstance {
             }
         }, 10, this.clientConfig.getPollNameServerInterval(), TimeUnit.MILLISECONDS);
 
+        // broker列表维护  30s/次
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
             public void run() {
                 try {
+                    //清除失效的broker
                     MQClientInstance.this.cleanOfflineBroker();
+                    //向所有的broker发送心跳
                     MQClientInstance.this.sendHeartbeatToAllBrokerWithLock();
                 } catch (Exception e) {
                     log.error("ScheduledTask sendHeartbeatToAllBroker exception", e);
@@ -295,11 +301,13 @@ public class MQClientInstance {
             }
         }, 1000, this.clientConfig.getHeartbeatBrokerInterval(), TimeUnit.MILLISECONDS);
 
+        //同步offset信息到topic  5s/次
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
             public void run() {
                 try {
+                    // CLUSTER模式保存到broker  BROADCASTING 保存到customer本地文件
                     MQClientInstance.this.persistAllConsumerOffset();
                 } catch (Exception e) {
                     log.error("ScheduledTask persistAllConsumerOffset exception", e);
@@ -324,7 +332,9 @@ public class MQClientInstance {
         return clientId;
     }
 
+    //从namesrv获取topic信息
     public void updateTopicRouteInfoFromNameServer() {
+        //配置中配置的订阅的topic
         Set<String> topicList = new HashSet<String>();
 
         // Consumer
@@ -357,7 +367,7 @@ public class MQClientInstance {
             }
         }
 
-        // 获取订阅的topic的信息
+        // 从namesrv获取订阅的topic的信息
         for (String topic : topicList) {
             this.updateTopicRouteInfoFromNameServer(topic);
         }
@@ -612,6 +622,7 @@ public class MQClientInstance {
             if (this.lockNamesrv.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
                 try {
                     TopicRouteData topicRouteData;
+                    // producer
                     if (isDefault && defaultMQProducer != null) {
                         // 获取topic信息
                         topicRouteData = this.mQClientAPIImpl.getDefaultTopicRouteInfoFromNameServer(defaultMQProducer.getCreateTopicKey(),
@@ -623,7 +634,7 @@ public class MQClientInstance {
                                 data.setWriteQueueNums(queueNums);
                             }
                         }
-                    } else {
+                    } else { //consumer
                         topicRouteData = this.mQClientAPIImpl.getTopicRouteInfoFromNameServer(topic, 1000 * 3);
                     }
                     if (topicRouteData != null) {
@@ -635,6 +646,7 @@ public class MQClientInstance {
                             log.info("the topic[{}] route info changed, old[{}] ,new[{}]", topic, old, topicRouteData);
                         }
 
+                        // 录信息已更改，更新本地
                         if (changed) {
                             TopicRouteData cloneTopicRouteData = topicRouteData.cloneTopicRouteData();
 

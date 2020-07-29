@@ -58,6 +58,7 @@ public class PullMessageService extends ServiceThread {
 
     public void executePullRequestImmediately(final PullRequest pullRequest) {
         try {
+            //两个来源 1.rebalanceService  2.响应broker的返回
             this.pullRequestQueue.put(pullRequest);
         } catch (InterruptedException e) {
             log.error("executePullRequestImmediately pullRequestQueue.put", e);
