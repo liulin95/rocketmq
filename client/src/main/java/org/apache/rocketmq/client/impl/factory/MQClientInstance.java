@@ -238,12 +238,13 @@ public class MQClientInstance {
                     // 开启定时任务
                     this.startScheduledTask();
                     // Start pull service
-                    // pull service,线程从任务队列获取请求从broker拉取消息
+                    // pull service,线程从任务队列获取请求从broker拉取消息 只有consumer运行此逻辑
                     this.pullMessageService.start();
                     // Start rebalance service
-                    // 负载均衡
+                    // 负载均衡 只有consumer运行此逻辑
                     this.rebalanceService.start();
                     // Start push service
+                    // producer 启动
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
                     log.info("the client factory [{}] start OK", this.clientId);
                     this.serviceState = ServiceState.RUNNING;
