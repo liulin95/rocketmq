@@ -143,7 +143,7 @@ public class BrokerController {
     private final BrokerStatsManager brokerStatsManager;
     private final List<SendMessageHook> sendMessageHookList = new ArrayList<SendMessageHook>();
     private final List<ConsumeMessageHook> consumeMessageHookList = new ArrayList<ConsumeMessageHook>();
-    private MessageStore messageStore;
+    private MessageStore messageStore; //消息存储
     private RemotingServer remotingServer;
     private RemotingServer fastRemotingServer;
     private TopicConfigManager topicConfigManager;
@@ -853,6 +853,7 @@ public class BrokerController {
             this.messageStore.start();
         }
 
+        // 开启nettyServer,用于接收client的请求
         if (this.remotingServer != null) {
             this.remotingServer.start();
         }
