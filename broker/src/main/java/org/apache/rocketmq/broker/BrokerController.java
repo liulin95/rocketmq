@@ -231,9 +231,10 @@ public class BrokerController {
         return queryThreadPoolQueue;
     }
 
+    // 初始化
     public boolean initialize() throws CloneNotSupportedException {
         boolean result = this.topicConfigManager.load();
-
+        //offset管理 从文件加载
         result = result && this.consumerOffsetManager.load();
         result = result && this.subscriptionGroupManager.load();
         result = result && this.consumerFilterManager.load();
@@ -264,6 +265,7 @@ public class BrokerController {
             this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.clientHousekeepingService);
             NettyServerConfig fastConfig = (NettyServerConfig) this.nettyServerConfig.clone();
             fastConfig.setListenPort(nettyServerConfig.getListenPort() - 2);
+            //配置和remotingServer相同，端口不同
             this.fastRemotingServer = new NettyRemotingServer(fastConfig, this.clientHousekeepingService);
             this.sendMessageExecutor = new BrokerFixedThreadPoolExecutor(
                 this.brokerConfig.getSendMessageThreadPoolNums(),
@@ -857,7 +859,7 @@ public class BrokerController {
         if (this.remotingServer != null) {
             this.remotingServer.start();
         }
-
+        // 配置和remotingServer一样，只有端口不同,接收发送消息的请求
         if (this.fastRemotingServer != null) {
             this.fastRemotingServer.start();
         }

@@ -191,6 +191,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                 }
             });
 
+        //检查超时的请求
         this.timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -202,6 +203,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
             }
         }, 1000 * 3, 1000);
 
+        // 连接事件接收处理
         if (this.channelEventListener != null) {
             this.nettyEventExecutor.start();
         }
