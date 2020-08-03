@@ -241,6 +241,7 @@ public class BrokerController {
 
         if (result) {
             try {
+                // 消息存储
                 this.messageStore =
                     new DefaultMessageStore(this.messageStoreConfig, this.brokerStatsManager, this.messageArrivingListener,
                         this.brokerConfig);
@@ -259,13 +260,15 @@ public class BrokerController {
             }
         }
 
+        //加载messageStore
         result = result && this.messageStore.load();
 
         if (result) {
+            // 用于接收client请求 拉取消息
             this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.clientHousekeepingService);
             NettyServerConfig fastConfig = (NettyServerConfig) this.nettyServerConfig.clone();
             fastConfig.setListenPort(nettyServerConfig.getListenPort() - 2);
-            //配置和remotingServer相同，端口不同
+            //配置和remotingServer相同，端口不同 用于提交消息 没有添加pullMessageExecutor 无法接收pullMessage请求
             this.fastRemotingServer = new NettyRemotingServer(fastConfig, this.clientHousekeepingService);
             this.sendMessageExecutor = new BrokerFixedThreadPoolExecutor(
                 this.brokerConfig.getSendMessageThreadPoolNums(),
@@ -346,6 +349,7 @@ public class BrokerController {
                 }
             }, initialDelay, period, TimeUnit.MILLISECONDS);
 
+            //持久化到文件
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
@@ -421,6 +425,7 @@ public class BrokerController {
 
             if (!messageStoreConfig.isEnableDLegerCommitLog()) {
                 if (BrokerRole.SLAVE == this.messageStoreConfig.getBrokerRole()) {
+                    // 主节点地址
                     if (this.messageStoreConfig.getHaMasterAddress() != null && this.messageStoreConfig.getHaMasterAddress().length() >= 6) {
                         this.messageStore.updateHaMasterAddress(this.messageStoreConfig.getHaMasterAddress());
                         this.updateMasterHAServerAddrPeriodically = false;
@@ -859,7 +864,7 @@ public class BrokerController {
         if (this.remotingServer != null) {
             this.remotingServer.start();
         }
-        // 配置和remotingServer一样，只有端口不同,接收发送消息的请求
+        // 配置和remotingServer一样，只有端口不同,接收发送消息的请求，无法接收pullMessage请求
         if (this.fastRemotingServer != null) {
             this.fastRemotingServer.start();
         }
