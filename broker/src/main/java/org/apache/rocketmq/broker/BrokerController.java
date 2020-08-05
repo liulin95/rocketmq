@@ -895,6 +895,7 @@ public class BrokerController {
             this.registerBrokerAll(true, false, true);
         }
 
+        // 注册broker信息到所有的nameServer
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -937,6 +938,7 @@ public class BrokerController {
     }
 
     public synchronized void registerBrokerAll(final boolean checkOrderConfig, boolean oneway, boolean forceRegister) {
+        // 包装当前broker信息
         TopicConfigSerializeWrapper topicConfigWrapper = this.getTopicConfigManager().buildTopicConfigSerializeWrapper();
 
         if (!PermName.isWriteable(this.getBrokerConfig().getBrokerPermission())
@@ -956,6 +958,7 @@ public class BrokerController {
             this.brokerConfig.getBrokerName(),
             this.brokerConfig.getBrokerId(),
             this.brokerConfig.getRegisterBrokerTimeoutMills())) {
+            //注册所有信息到所有的namesrv节点
             doRegisterBrokerAll(checkOrderConfig, oneway, topicConfigWrapper);
         }
     }

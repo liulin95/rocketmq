@@ -110,6 +110,7 @@ public class HAService {
         this.acceptSocketService.beginAccept();
         this.acceptSocketService.start();
         this.groupTransferService.start();
+        // 向主节点报告当前offset
         this.haClient.start();
     }
 
