@@ -182,6 +182,7 @@ public abstract class NettyRemotingAbstract {
      * @param cmd request command.
      */
     public void processRequestCommand(final ChannelHandlerContext ctx, final RemotingCommand cmd) {
+        //根据命令获取对应的处理器
         final Pair<NettyRequestProcessor, ExecutorService> matched = this.processorTable.get(cmd.getCode());
         final Pair<NettyRequestProcessor, ExecutorService> pair = null == matched ? this.defaultRequestProcessor : matched;
         final int opaque = cmd.getOpaque();
@@ -212,10 +213,12 @@ public abstract class NettyRemotingAbstract {
                                 }
                             }
                         };
+                        //异步响应
                         if (pair.getObject1() instanceof AsyncNettyRequestProcessor) {
                             AsyncNettyRequestProcessor processor = (AsyncNettyRequestProcessor) pair.getObject1();
                             processor.asyncProcessRequest(ctx, cmd, callback);
                         } else {
+                            //同步响应
                             NettyRequestProcessor processor = pair.getObject1();
                             RemotingCommand response = processor.processRequest(ctx, cmd);
                             callback.callback(response);
@@ -234,6 +237,7 @@ public abstract class NettyRemotingAbstract {
                 }
             };
 
+            // 拒绝响应
             if (pair.getObject1().rejectRequest()) {
                 final RemotingCommand response = RemotingCommand.createResponseCommand(RemotingSysResponseCode.SYSTEM_BUSY,
                         "[REJECTREQUEST]system busy, start flow control for a while");
@@ -244,6 +248,7 @@ public abstract class NettyRemotingAbstract {
 
             try {
                 final RequestTask requestTask = new RequestTask(run, ctx.channel(), cmd);
+                //提交给线程池执行，最后通过上边定义的RemotingResponseCallback 回调方法响应请求结果
                 pair.getObject2().submit(requestTask);
             } catch (RejectedExecutionException e) {
                 if ((System.currentTimeMillis() % 10000) == 0) {

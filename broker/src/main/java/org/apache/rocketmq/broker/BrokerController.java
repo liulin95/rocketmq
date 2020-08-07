@@ -558,6 +558,7 @@ public class BrokerController {
         sendProcessor.registerSendMessageHook(sendMessageHookList);
         sendProcessor.registerConsumeMessageHook(consumeMessageHookList);
 
+        // 设置对应业务的处理器
         this.remotingServer.registerProcessor(RequestCode.SEND_MESSAGE, sendProcessor, this.sendMessageExecutor);
         this.remotingServer.registerProcessor(RequestCode.SEND_MESSAGE_V2, sendProcessor, this.sendMessageExecutor);
         this.remotingServer.registerProcessor(RequestCode.SEND_BATCH_MESSAGE, sendProcessor, this.sendMessageExecutor);

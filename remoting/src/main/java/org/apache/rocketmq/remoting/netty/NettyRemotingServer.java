@@ -211,10 +211,15 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                         ch.pipeline()
                             .addLast(defaultEventExecutorGroup, HANDSHAKE_HANDLER_NAME, handshakeHandler)
                             .addLast(defaultEventExecutorGroup,
+                                //编码
                                 encoder,
+                                //解码 解码成RemotingCommand
                                 new NettyDecoder(),
+                                //心跳
                                 new IdleStateHandler(0, 0, nettyServerConfig.getServerChannelMaxIdleTimeSeconds()),
+                                //连接管理
                                 connectionManageHandler,
+                                //逻辑处理
                                 serverHandler
                             );
                     }
@@ -418,6 +423,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, RemotingCommand msg) throws Exception {
+            //处理消息
             processMessageReceived(ctx, msg);
         }
     }

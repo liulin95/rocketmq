@@ -664,7 +664,9 @@ public class CommitLog {
         storeStatsService.getSinglePutMessageTopicTimesTotal(msg.getTopic()).incrementAndGet();
         storeStatsService.getSinglePutMessageTopicSizeTotal(topic).addAndGet(result.getWroteBytes());
 
+        //刷盘
         CompletableFuture<PutMessageStatus> flushResultFuture = submitFlushRequest(result, putMessageResult, msg);
+        //同步副本
         CompletableFuture<PutMessageStatus> replicaResultFuture = submitReplicaRequest(result, putMessageResult, msg);
         return flushResultFuture.thenCombine(replicaResultFuture, (flushStatus, replicaStatus) -> {
             if (flushStatus != PutMessageStatus.PUT_OK) {
@@ -1656,6 +1658,7 @@ public class CommitLog {
 
             final long beginTimeMills = CommitLog.this.defaultMessageStore.now();
             // Write messages to the queue buffer
+            // 将消息写入
             byteBuffer.put(this.msgStoreItemMemory.array(), 0, msgLen);
 
             AppendMessageResult result = new AppendMessageResult(AppendMessageStatus.PUT_OK, wroteOffset, msgLen, msgId,

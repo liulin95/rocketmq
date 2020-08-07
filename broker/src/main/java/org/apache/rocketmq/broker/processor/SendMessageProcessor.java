@@ -84,6 +84,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
 
     public CompletableFuture<RemotingCommand> asyncProcessRequest(ChannelHandlerContext ctx,
                                                                   RemotingCommand request) throws RemotingCommandException {
+        //处理发送请求
         final SendMessageContext mqtraceContext;
         switch (request.getCode()) {
             case RequestCode.CONSUMER_SEND_MSG_BACK:
@@ -258,10 +259,14 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
 
         final byte[] body = request.getBody();
 
+        //queueId
         int queueIdInt = requestHeader.getQueueId();
+        //topic
         TopicConfig topicConfig = this.brokerController.getTopicConfigManager().selectTopicConfig(requestHeader.getTopic());
 
+        //未指定queue
         if (queueIdInt < 0) {
+            //随机指定
             queueIdInt = randomQueueId(topicConfig.getWriteQueueNums());
         }
 
@@ -288,7 +293,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
         CompletableFuture<PutMessageResult> putMessageResult = null;
         Map<String, String> origProps = MessageDecoder.string2messageProperties(requestHeader.getProperties());
         String transFlag = origProps.get(MessageConst.PROPERTY_TRANSACTION_PREPARED);
-        if (transFlag != null && Boolean.parseBoolean(transFlag)) {
+        if (transFlag != null && Boolean.parseBoolean(transFlag)) { //事务消息
             if (this.brokerController.getBrokerConfig().isRejectTransactionMessage()) {
                 response.setCode(ResponseCode.NO_PERMISSION);
                 response.setRemark(
