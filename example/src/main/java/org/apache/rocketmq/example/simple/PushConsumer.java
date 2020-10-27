@@ -16,7 +16,10 @@
  */
 package org.apache.rocketmq.example.simple;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -24,12 +27,13 @@ import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.remoting.common.RemotingHelper;
 
 public class PushConsumer {
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("CID_JODIE_1");
-        consumer.subscribe("TopicTest", "TagA");
+        consumer.subscribe("TopicTest", "*");
         consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         //wrong time format 2017_0422_221800
         consumer.setConsumeTimestamp("20181109221800");
@@ -38,7 +42,14 @@ public class PushConsumer {
 
             @Override
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
-                System.out.printf("%s Receive New Messages: %s %n", Thread.currentThread().getName(), msgs);
+                System.out.printf("%s Receive New Messages: %s %n", Thread.currentThread().getName(), msgs.stream().map(o-> {
+                    try {
+                        return new String(o.getBody(), RemotingHelper.DEFAULT_CHARSET);
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    return "";
+                }).collect(Collectors.joining(",")));
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             }
         });

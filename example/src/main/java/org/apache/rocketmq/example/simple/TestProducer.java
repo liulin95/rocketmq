@@ -16,39 +16,52 @@
  */
 package org.apache.rocketmq.example.simple;
 
-import org.apache.rocketmq.client.QueryResult;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
-import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
+
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class TestProducer {
     public static void main(String[] args) throws MQClientException, InterruptedException {
         DefaultMQProducer producer = new DefaultMQProducer("ProducerGroupName");
         producer.start();
 
-        for (int i = 0; i < 1; i++)
-            try {
-                {
-                    Message msg = new Message("TopicTest",
-                        "TagA",
-                        "key113",
-                        "Hello world".getBytes(RemotingHelper.DEFAULT_CHARSET));
-                    SendResult sendResult = producer.send(msg);
-                    System.out.printf("%s%n", sendResult);
+
+        try {
+            List<Message> msgs = IntStream.range(0, 10).mapToObj(o -> {
+                try {
+                    return new Message("TopicTest",
+                            "TagA",
+                            "key113",
+                            ("Hello world" + o).getBytes(RemotingHelper.DEFAULT_CHARSET));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }).collect(Collectors.toList());
+//                for (int i = 0; i < 10; i++) {
+//                    Message msg = new Message("TopicTest",
+//                            "TagA",
+//                            "key113",
+//                            ("Hello world" + i).getBytes(RemotingHelper.DEFAULT_CHARSET));
+//                }
+            SendResult sendResult = producer.send(msgs);
+            System.out.printf("%s%n", sendResult);
 
 //                    QueryResult queryMessage =
 //                        producer.queryMessage("TopicTest", "key113", 10, 0, System.currentTimeMillis());
 //                    for (MessageExt m : queryMessage.getMessageList()) {
 //                        System.out.printf("%s%n", m);
 //                    }
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         producer.shutdown();
     }
 }

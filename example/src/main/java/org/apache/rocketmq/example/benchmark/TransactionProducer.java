@@ -290,6 +290,7 @@ class TransactionListenerImpl implements TransactionListener {
         return msgMeta;
     }
 
+
     @Override
     public LocalTransactionState checkLocalTransaction(MessageExt msg) {
         MsgMeta msgMeta = parseFromMsg(msg);

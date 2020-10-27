@@ -664,7 +664,7 @@ public class CommitLog {
         storeStatsService.getSinglePutMessageTopicTimesTotal(msg.getTopic()).incrementAndGet();
         storeStatsService.getSinglePutMessageTopicSizeTotal(topic).addAndGet(result.getWroteBytes());
 
-        //刷盘
+        //提交刷盘请求
         CompletableFuture<PutMessageStatus> flushResultFuture = submitFlushRequest(result, putMessageResult, msg);
         //同步副本
         CompletableFuture<PutMessageStatus> replicaResultFuture = submitReplicaRequest(result, putMessageResult, msg);
